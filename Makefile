@@ -13,11 +13,12 @@ init i:
 	@echo "[Dependencies] Installing dependencies"
 	@npm install
 
-clean c:
-	@echo "[Clean] Cleaning"
+deploy d:
+	@echo "[Cloud Function Deployment] Deploying Function"
+	@gcloud functions deploy deviceControlApi --set-env-vars MONGO_URI=$(MONGO_URI) --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars projectId=$(projectId) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
 
 run r:
 	@echo "[Running] Running service"
-	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) projectId=$(projectId) registryId=$(registryId) npm start
+	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) projectId=$(projectId) registryId=$(registryId) node src/start.js
 
 .PHONY: version v prepare pre clean c run r
