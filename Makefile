@@ -21,4 +21,4 @@ run r:
 	@echo "[Running] Running service"
 	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) projectId=$(projectId) registryId=$(registryId) node src/start.js
 
-.PHONY: version v prepare pre clean c run r
+.PHONY: version v init i deploy d run r
