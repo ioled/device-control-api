@@ -3,6 +3,7 @@ MONGO_URI:= $$(cat env.json | grep MONGO_URI | sed 's/"/ /g' | awk {'print $$3'}
 cloudRegion := $$(cat env.json | grep cloudRegion | sed 's/"/ /g' | awk {'print $$3'})
 projectId := $$(cat env.json | grep projectId | sed 's/"/ /g' | awk {'print $$3'})
 registryId := $$(cat env.json | grep registryId | sed 's/"/ /g' | awk {'print $$3'})
+REGISTRY=gcr.io
 SVC=ioled/device-control-api
 PORT=5010
 
@@ -15,12 +16,17 @@ init i:
 
 docker:
 	@echo [Docker] Building docker image
-	@docker build -t $(SVC):$(VERSION) .
+	@docker build -t $(REGISTRY)/$(projectId)/$(SVC):$(VERSION) .
 
 docker-compose co:
 	@echo [Docker][Compose] Running with docker compose
 	@docker-compose build
 	@docker-compose up
+
+docker-registry reg:
+	@echo [Docker][Registry] Deploying to registry
+	@make docker
+	@docker push $(REGISTRY)/$(projectId)/$(SVC):$(VERSION)
 
 deploy d:
 	@echo "[Cloud Function Deployment] Deploying Function"
