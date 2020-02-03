@@ -1,0 +1,8 @@
+node_modules/
+.gitignore
+.gcloudignore
+.prettierrc
+env example.json
+README.md
+google-cloud-service-account example.json
+

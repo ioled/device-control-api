@@ -3,7 +3,7 @@ MONGO_URI:= $$(cat env.json | grep MONGO_URI | sed 's/"/ /g' | awk {'print $$3'}
 cloudRegion := $$(cat env.json | grep cloudRegion | sed 's/"/ /g' | awk {'print $$3'})
 projectId := $$(cat env.json | grep projectId | sed 's/"/ /g' | awk {'print $$3'})
 registryId := $$(cat env.json | grep registryId | sed 's/"/ /g' | awk {'print $$3'})
-SVC=device-control-api
+SVC=ioled/device-control-api
 PORT=5010
 
 version v:
@@ -12,6 +12,15 @@ version v:
 init i:
 	@echo "[Dependencies] Installing dependencies"
 	@npm install
+
+docker:
+	@echo [Docker] Building docker image
+	@docker build -t $(SVC):$(VERSION) .
+
+docker-compose co:
+	@echo [Docker][Compose] Running with docker compose
+	@docker-compose build
+	@docker-compose up
 
 deploy d:
 	@echo "[Cloud Function Deployment] Deploying Function"

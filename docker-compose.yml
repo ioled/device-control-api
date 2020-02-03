@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  device-control-api:
+    build: .
+    ports:
+      - 5010:5010
+    container_name: device-control-api
