@@ -51,15 +51,17 @@ const users = mongoose.model('users', userSchema);
  * @returns {object} {fullName, email and profilePic} or an empty object in case of error or missing info
  */
 exports.deviceUser = async deviceID => {
-  const userDevice = await devices.findOne({deviceId: deviceID}).exec();
+  const userDevice = await devices.findOne({deviceId: deviceID});
   if (userDevice) {
     const userId = userDevice._user;
-    const user = await users.findById(userId).exec();
-    return {
-      fullName: capitalize(`${user.name} ${user.lastName}`.toLowerCase()),
-      email: user.email,
-      profilePic: user.photo,
-    };
+    const user = await users.findById(userId);
+    if (user)
+      return {
+        fullName: capitalize(`${user.name} ${user.lastName}`.toLowerCase()),
+        email: user.email,
+        profilePic: user.photo,
+      };
+    else return null;
   } else {
     return null;
   }

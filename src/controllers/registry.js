@@ -18,7 +18,7 @@ exports.getRegistries = async (req, res) => {
     // Get registries from the current project
     const registries = await googleService.getRegistries();
     console.log('[Device Control API][GetRegistries][Response] ', registries);
-    res.status(200).json({registries});
+    res.status(200).json({data: registries});
   } catch (error) {
     console.log('[Device Control API][GetRegistries][Error] ', err);
     // Send the error

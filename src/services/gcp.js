@@ -82,10 +82,8 @@ exports.getDeviceState = async deviceId => {
         const data = JSON.parse(buff.toString('utf-8'));
         // Show the date and time corresponding to the timezone
         const datetime = new Date(deviceState.updateTime);
-        return {
-          data,
-          datetime,
-        };
+        data.datetime = datetime;
+        return data;
       });
     } else {
       return {};
@@ -112,10 +110,16 @@ exports.getDeviceConfig = async deviceId => {
         const bufferedData = config.binaryData.toString('utf8');
         if (bufferedData === '') return {err: 'no config'};
         else {
-          const data = JSON.parse(config.binaryData.toString('utf8'));
+          let string = config.binaryData.toString('utf8');
+          if (string[0] != '{') {
+            string = `{${string}}`;
+          }
+          const data = JSON.parse(string);
           // Show the date and time corresponding to the timezone
           const datetime = new Date(config.cloudUpdateTime.seconds * 1000);
-          return {data, datetime};
+
+          data.datetime = datetime;
+          return data;
         }
       });
     }

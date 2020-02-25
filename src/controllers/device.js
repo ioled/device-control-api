@@ -37,7 +37,7 @@ exports.getDevices = async (req, res) => {
     }
 
     console.log('[Device Control API][getDevices][Response] ', devices);
-    res.status(200).json({devices});
+    res.status(200).json({data: devices});
   } catch (error) {
     console.log('[Device Control API][getDevices][Error] ', error);
     // Send the error
@@ -73,7 +73,7 @@ exports.getDeviceState = async (req, res) => {
     // Get device state
     const deviceState = await googleService.getDeviceState(id);
     console.log('[Device Control API][getDeviceState (' + id + ')][Response] ', deviceState);
-    res.status(200).json({deviceState});
+    res.status(200).json({data: deviceState});
   } catch (error) {
     console.log('[Device Control API][getDeviceState (' + id + ')][Error] ', error);
     // Send the error
@@ -118,7 +118,7 @@ exports.getDeviceConfig = async (req, res) => {
     // Get the device config
     const deviceConfig = await googleService.getDeviceConfig(id);
     console.log('[Device Control API][getDeviceConfig (' + id + ')][Response] ', deviceConfig);
-    res.status(200).json({deviceConfig});
+    res.status(200).json({data: deviceConfig});
   } catch (error) {
     console.log('[Device Control API][getDeviceConfig (' + id + ')][Error] ', error);
     // Send the error
@@ -163,7 +163,7 @@ exports.updateDeviceConfig = async (req, res) => {
     // Do not confuse the updateDeviceConfig status with the status of this controller
     if (status === 200) {
       console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', status);
-      return res.status(status).send({status});
+      return res.status(status).send({data: status});
     }
   } catch (error) {
     console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
@@ -192,7 +192,7 @@ exports.getUserByDevice = async (req, res) => {
   try {
     const user = await mongoDBService.deviceUser(id);
     console.log('[Device Control API][getUserByDevice (' + id + ')][Response] ', user);
-    res.status(200).json({user});
+    res.status(200).json({data: user});
   } catch (error) {
     console.log('[Device Control API][getUserByDevice (' + id + ')][Error] ', error);
     return res.status(500).json({error});
@@ -224,7 +224,7 @@ exports.getDeviceLastState = async (req, res) => {
       '[Device Control API][getDeviceLastState (' + id + ')][Response]',
       deviceStateResponse
     );
-    res.status(200).json(deviceStateResponse);
+    res.status(200).json({data: deviceStateResponse});
   } catch (error) {
     console.log('[Device Control API][getDeviceLastState (' + id + ')][Error]', error);
     // Send the error
@@ -273,7 +273,7 @@ exports.getDeviceLastConfig = async (req, res) => {
       '[Device Control API][getDeviceLastConfig (' + id + ')][Response] ',
       deviceConfig[0]
     );
-    res.status(200).json(deviceConfig[0]);
+    res.status(200).json({data: deviceConfig[0]});
   } catch (error) {
     console.log('[Device Control API][getDeviceLastConfig (' + id + ')][Error] ', error);
     // Send the error
