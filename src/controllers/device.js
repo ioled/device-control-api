@@ -163,7 +163,7 @@ exports.updateDeviceConfig = async (req, res) => {
     // Do not confuse the updateDeviceConfig status with the status of this controller
     if (status === 200) {
       console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', status);
-      return res.status(status).send({data: status});
+      return res.status(status).send(status);
     }
   } catch (error) {
     console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
