@@ -28,7 +28,5 @@ router.route('/device/:id/state-history').get(getDeviceState);
 
 router.route('/device/:id/config-history').get(getDeviceConfig);
 
-// router.route('/devices/user/:id').get(mongoService.deviceUser);
-
 // Export router to use it in the main router.
 module.exports = router;

@@ -1,6 +1,6 @@
 const googleService = require('../services/gcp');
 const mongoDBService = require('../services/mongodb');
-
+const {getDevicesWithUserInfo, getUserByDevice} = require('../services/firestore');
 /**
  * List all the devices
  * @description List the devices registered in IoT Core registry: ioled-devices.
@@ -20,21 +20,7 @@ const mongoDBService = require('../services/mongodb');
 exports.getDevices = async (req, res) => {
   console.log('[Device Control API][getDevices][Request]');
   try {
-    // Get the devices from the registry
-    const d = await googleService.getDevices();
-
-    // Just Get the device id
-    // For every device, get the corresponding user
-    const devices = [];
-    for (let i = 0; i < d.length; i++) {
-      const device = d[i];
-      const user = await mongoDBService.deviceUser(device.id);
-
-      devices.push({
-        device: device.id,
-        user,
-      });
-    }
+    const devices = await getDevicesWithUserInfo();
 
     console.log('[Device Control API][getDevices][Response] ', devices);
     res.status(200).json({data: devices});
@@ -190,7 +176,7 @@ exports.getUserByDevice = async (req, res) => {
   const {id} = req.params;
   console.log('[Device Control API][getUserByDevice (' + id + ')][Request] ', req.params);
   try {
-    const user = await mongoDBService.deviceUser(id);
+    const user = await getUserByDevice(id);
     console.log('[Device Control API][getUserByDevice (' + id + ')][Response] ', user);
     res.status(200).json({data: user});
   } catch (error) {
