@@ -1,35 +1,6 @@
 const googleService = require('../services/gcp');
 const mongoDBService = require('../services/mongodb');
-const {getDevicesWithUserInfo, getUserByDevice} = require('../services/firestore');
-/**
- * List all the devices
- * @description List the devices registered in IoT Core registry: ioled-devices.
- * @returns {object} HTTP status code - 200, 500.
- * @example Response example:
- * {
- *  "devices": [
- *   {
- *    "device": "esp32_...",
- *    "user":
- *      {"fullName": "...", "email": "...", "profilePic": "..."}
- *   },
- *   ...
- *  ]
- * }
- */
-exports.getDevices = async (req, res) => {
-  console.log('[Device Control API][getDevices][Request]');
-  try {
-    const devices = await getDevicesWithUserInfo();
-
-    console.log('[Device Control API][getDevices][Response] ', devices);
-    res.status(200).json({data: devices});
-  } catch (error) {
-    console.log('[Device Control API][getDevices][Error] ', error);
-    // Send the error
-    res.status(500).json({error});
-  }
-};
+const {getUserByDevice} = require('../services/firestore');
 
 /**
  * Get the state of a iot core device.
@@ -154,33 +125,6 @@ exports.updateDeviceConfig = async (req, res) => {
   } catch (error) {
     console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
     // Send the error
-    return res.status(500).json({error});
-  }
-};
-
-/**
- * Get the user related to the device
- * @description Controller that returns a JSON object with the user information of the device user
- * @param {String} id - ID of the device listed in IoT Core
- * @returns {object} HTTP status code - 200, 500.
- * @example Response example:
- * {
- *  "user": {
- *    "fullName": "John Doe",
- *    "email": "johndoe@gmail.com",
- *    "profilePic": "..."
- *  }
- * }
- */
-exports.getUserByDevice = async (req, res) => {
-  const {id} = req.params;
-  console.log('[Device Control API][getUserByDevice (' + id + ')][Request] ', req.params);
-  try {
-    const user = await getUserByDevice(id);
-    console.log('[Device Control API][getUserByDevice (' + id + ')][Response] ', user);
-    res.status(200).json({data: user});
-  } catch (error) {
-    console.log('[Device Control API][getUserByDevice (' + id + ')][Error] ', error);
     return res.status(500).json({error});
   }
 };

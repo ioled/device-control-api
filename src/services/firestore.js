@@ -24,14 +24,18 @@ exports.getDevicesWithUserInfo = async () => {
     for (let index = 0; index < data.length; index++) {
       const device = data[index];
       const userId = device.user;
-
-      const doc = await usersRef.doc(userId).get();
-      const userInfo = doc.data();
-      device.user = {
-        name: capitalize(`${userInfo.name} ${userInfo.lastName}`),
-        email: userInfo.email,
-        photo: userInfo.photo,
-      };
+      console.log('USER ID:', userId);
+      if (userId !== '') {
+        const doc = await usersRef.doc(userId).get();
+        const userInfo = doc.data();
+        device.user = {
+          name: capitalize(`${userInfo.name} ${userInfo.lastName}`),
+          email: userInfo.email,
+          photo: userInfo.photo,
+        };
+      } else {
+        device.user = null;
+      }
     }
     return data;
   } catch (error) {
