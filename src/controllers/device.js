@@ -1,6 +1,4 @@
 const googleService = require('../services/gcp');
-const mongoDBService = require('../services/mongodb');
-const {getUserByDevice} = require('../services/firestore');
 
 /**
  * Get the state of a iot core device.
