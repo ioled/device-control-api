@@ -73,11 +73,11 @@ exports.getDeviceState = async (req, res) => {
     // Get device state
     const deviceState = await googleService.getDeviceState(id);
     console.log('[Device Control API][getDeviceState (' + id + ')][Response] ', deviceState);
-    res.status(200).json({deviceState});
+    res.status(200).send({deviceState});
   } catch (error) {
     console.log('[Device Control API][getDeviceState (' + id + ')][Error] ', error);
     // Send the error
-    res.status(500).json({error});
+    res.status(500).send({error});
   }
 };
 
@@ -224,11 +224,11 @@ exports.getDeviceLastState = async (req, res) => {
       '[Device Control API][getDeviceLastState (' + id + ')][Response]',
       deviceStateResponse
     );
-    res.status(200).json(deviceStateResponse);
+    res.status(200).send(deviceStateResponse);
   } catch (error) {
     console.log('[Device Control API][getDeviceLastState (' + id + ')][Error]', error);
     // Send the error
-    res.status(500).json({error});
+    res.status(500).send({error});
   }
 };
 
