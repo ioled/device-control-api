@@ -1,6 +1,6 @@
 VERSION := $$(cat package.json | grep version | sed 's/"/ /g' | awk {'print $$3'})
 cloudRegion := $$(cat env.json | grep cloudRegion | sed 's/"/ /g' | awk {'print $$3'})
-projectId := $$(cat env.json | grep projectId | sed 's/"/ /g' | awk {'print $$3'})
+PROJECT_ID := $$(cat env.json | grep PROJECT_ID | sed 's/"/ /g' | awk {'print $$3'})
 registryId := $$(cat env.json | grep registryId | sed 's/"/ /g' | awk {'print $$3'})
 REGISTRY=gcr.io
 SVC=ioled/device-control-api
@@ -15,7 +15,7 @@ init i:
 
 docker:
 	@echo [Docker] Building docker image
-	@docker build -t $(REGISTRY)/$(projectId)/$(SVC):$(VERSION) .
+	@docker build -t $(REGISTRY)/$(PROJECT_ID)/$(SVC):$(VERSION) .
 
 docker-compose co:
 	@echo [Docker][Compose] Running with docker compose
@@ -25,7 +25,7 @@ docker-compose co:
 docker-registry reg:
 	@echo [Docker][Registry] Deploying to registry
 	@make docker
-	@docker push $(REGISTRY)/$(projectId)/$(SVC):$(VERSION)
+	@docker push $(REGISTRY)/$(PROJECT_ID)/$(SVC):$(VERSION)
 
 deploy d:
 	@echo "[Cloud Function Deployment] Deploying Function"
@@ -37,6 +37,6 @@ deploy-test dt:
 
 run r:
 	@echo "[Running] Running service"
-	@PORT=$(PORT) GOOGLE_APPLICATION_CREDENTIALS="./google-cloud-service-account.json" cloudRegion=$(cloudRegion) projectId=$(projectId) registryId=$(registryId) node src/start.js
+	@PORT=$(PORT) GOOGLE_APPLICATION_CREDENTIALS="./google-cloud-service-account.json" cloudRegion=$(cloudRegion) PROJECT_ID=$(PROJECT_ID) registryId=$(registryId) node src/start.js
 
 .PHONY: version v init i deploy d run r

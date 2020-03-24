@@ -4,7 +4,7 @@ const {google} = require('googleapis');
 const googleConf = require('../config/google.js');
 
 if (
-  googleConf.iotCore.projectId === undefined ||
+  googleConf.iotCore.PROJECT_ID === undefined ||
   googleConf.iotCore.cloudRegion === undefined ||
   googleConf.iotCore.registryId === undefined
 ) {
@@ -31,7 +31,7 @@ const getClient = async () => {
 };
 
 exports.getRegistries = async () => {
-  const parent = client.locationPath(googleConf.iotCore.projectId, googleConf.iotCore.cloudRegion);
+  const parent = client.locationPath(googleConf.iotCore.PROJECT_ID, googleConf.iotCore.cloudRegion);
   try {
     const [registries] = await client.listDeviceRegistries({
       parent,
@@ -45,7 +45,7 @@ exports.getRegistries = async () => {
 };
 
 exports.getDevices = async () => {
-  const parentName = `projects/${googleConf.iotCore.projectId}/locations/${googleConf.iotCore.cloudRegion}`;
+  const parentName = `projects/${googleConf.iotCore.PROJECT_ID}/locations/${googleConf.iotCore.cloudRegion}`;
   const registryName = `${parentName}/registries/${googleConf.iotCore.registryId}`;
 
   const request = {
@@ -63,7 +63,7 @@ exports.getDevices = async () => {
 };
 
 exports.getDeviceState = async deviceId => {
-  const parentName = `projects/${googleConf.iotCore.projectId}/locations/${googleConf.iotCore.cloudRegion}`;
+  const parentName = `projects/${googleConf.iotCore.PROJECT_ID}/locations/${googleConf.iotCore.cloudRegion}`;
   const registryName = `${parentName}/registries/${googleConf.iotCore.registryId}`;
   const request = {
     name: `${registryName}/devices/${deviceId}`,
