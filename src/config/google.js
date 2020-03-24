@@ -13,7 +13,7 @@ const config = {
   },
   iotCore: {
     cloudRegion: process.env.cloudRegion,
-    projectId: process.env.projectId,
+    projectId: process.env.PROJECT_ID,
     registryId: process.env.registryId,
     version: 0,
     parentName: '',

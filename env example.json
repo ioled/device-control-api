@@ -1,6 +1,6 @@
 {
   "MONGO_URI": "",
   "cloudRegion": "",
-  "projectId": "",
+  "PROJECT_ID": "",
   "registryId": ""
 }

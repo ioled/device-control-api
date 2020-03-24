@@ -1,7 +1,7 @@
 VERSION := $$(cat package.json | grep version | sed 's/"/ /g' | awk {'print $$3'})
 MONGO_URI:= $$(cat env.json | grep MONGO_URI | sed 's/"/ /g' | awk {'print $$3'})
 cloudRegion := $$(cat env.json | grep cloudRegion | sed 's/"/ /g' | awk {'print $$3'})
-projectId := $$(cat env.json | grep projectId | sed 's/"/ /g' | awk {'print $$3'})
+PROJECT_ID := $$(cat env.json | grep PROJECT_ID | sed 's/"/ /g' | awk {'print $$3'})
 registryId := $$(cat env.json | grep registryId | sed 's/"/ /g' | awk {'print $$3'})
 REGISTRY=gcr.io
 SVC=ioled/device-control-api
@@ -34,6 +34,6 @@ deploy d:
 
 run r:
 	@echo "[Running] Running service"
-	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) projectId=$(projectId) registryId=$(registryId) node src/start.js
+	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) PROJECT_ID="$(PROJECT_ID)" registryId=$(registryId) node src/start.js
 
 .PHONY: version v init i deploy d run r
