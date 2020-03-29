@@ -1,5 +1,7 @@
 const googleService = require('../services/gcp');
 
+const {updateDevice} = require('../services/firestore');
+
 /**
  * Get the state of a iot core device.
  * @description List the last 10 states of device
@@ -117,8 +119,15 @@ exports.updateDeviceConfig = async (req, res) => {
     // If configuration is ok, then update the config in the database.
     // Do not confuse the updateDeviceConfig status with the status of this controller
     if (status === 200) {
-      console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', status);
-      return res.status(status).send(status);
+      try {
+        await updateDevice(id, config);
+        console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', {
+          message: 'Config updated',
+        });
+        return res.status(status).sendStatus(status);
+      } catch (error) {
+        console.log('[iOLED-API][updateDeviceConfig][Error] ', {error: error.message});
+      }
     }
   } catch (error) {
     console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
@@ -143,7 +152,11 @@ exports.updateDeviceConfig = async (req, res) => {
  */
 exports.getDeviceLastState = async (req, res) => {
   const {id} = req.params;
-  console.log('[Device Control API][getDeviceLastState (' + id + ')][Request]', req.params);
+  console.log(
+    '[Device Control API][getDeviceLastState (' + id + ')][Request]',
+    req.params,
+    req.body
+  );
   // Using the same logic in the "getDeviceState" function
   try {
     const deviceState = await googleService.getDeviceState(id);
