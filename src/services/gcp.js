@@ -95,7 +95,7 @@ exports.getDeviceState = async deviceId => {
 
 exports.getDeviceConfig = async deviceId => {
   const devicePath = client.devicePath(
-    googleConf.iotCore.projectId,
+    googleConf.iotCore.PROJECT_ID,
     googleConf.iotCore.cloudRegion,
     googleConf.iotCore.registryId,
     deviceId
