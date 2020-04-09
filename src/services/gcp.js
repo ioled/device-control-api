@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 const iot = require('@google-cloud/iot');
 const client = new iot.DeviceManagerClient();
 const {google} = require('googleapis');
@@ -36,7 +38,7 @@ exports.getRegistries = async () => {
     const [registries] = await client.listDeviceRegistries({
       parent,
     });
-    return registries.map(registry => {
+    return registries.map((registry) => {
       return registry.id;
     });
   } catch (err) {
@@ -62,7 +64,7 @@ exports.getDevices = async () => {
   }
 };
 
-exports.getDeviceState = async deviceId => {
+exports.getDeviceState = async (deviceId) => {
   const parentName = `projects/${googleConf.iotCore.PROJECT_ID}/locations/${googleConf.iotCore.cloudRegion}`;
   const registryName = `${parentName}/registries/${googleConf.iotCore.registryId}`;
   const request = {
@@ -76,7 +78,7 @@ exports.getDeviceState = async deviceId => {
       request
     );
     if (data.deviceStates) {
-      return data.deviceStates.map(deviceState => {
+      return data.deviceStates.map((deviceState) => {
         const base64_text = deviceState.binaryData.toString('utf8');
         const buff = Buffer.from(base64_text, 'base64');
         const data = JSON.parse(buff.toString('utf-8'));
@@ -93,7 +95,7 @@ exports.getDeviceState = async deviceId => {
   }
 };
 
-exports.getDeviceConfig = async deviceId => {
+exports.getDeviceConfig = async (deviceId) => {
   const devicePath = client.devicePath(
     googleConf.iotCore.PROJECT_ID,
     googleConf.iotCore.cloudRegion,
@@ -106,7 +108,7 @@ exports.getDeviceConfig = async deviceId => {
     const configs = responses[0].deviceConfigs;
 
     if (configs.length > 0) {
-      return configs.map(config => {
+      return configs.map((config) => {
         const bufferedData = config.binaryData.toString('utf8');
         if (bufferedData === '') return {err: 'no config'};
         else {
@@ -158,8 +160,24 @@ exports.getDeviceConfig = async deviceId => {
  * @returns {Promise<number>} HTTP status code - 200, 429.
  */
 exports.updateDeviceConfig = async (deviceId, config) => {
+  const _config = _.pick(config, ['duty', 'state']);
+
+  const _configTimer = _.pick(config, ['timerOn', 'timerOff', 'timerState']);
+
+  // Generate the board format for the device.
+  const board = {
+    board: {
+      led1: _config,
+      led2: _config,
+      timer: _configTimer,
+    },
+  };
+  // Convert config object to JSON.
+  const data = JSON.stringify(board);
+
   // Convert data to base64
-  const binaryData = Buffer.from(config).toString('base64');
+  const binaryData = Buffer.from(data).toString('base64');
+
   // Create request object
   const request = {
     name: `${googleConf.iotCore.registryName}/devices/${deviceId}`,

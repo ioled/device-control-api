@@ -114,8 +114,7 @@ exports.updateDeviceConfig = async (req, res) => {
   }
   // Send the configuration to google IoT core.
   try {
-    // Make sure to send the configuration in string mode
-    const status = await googleService.updateDeviceConfig(id, JSON.stringify(config));
+    const status = await googleService.updateDeviceConfig(id, config);
     // If configuration is ok, then update the config in the database.
     // Do not confuse the updateDeviceConfig status with the status of this controller
     if (status === 200) {
