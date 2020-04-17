@@ -28,12 +28,12 @@ docker-registry reg:
 	@docker push $(REGISTRY)/$(PROJECT_ID)/$(SVC):$(VERSION)
 
 deploy d:
-	@echo "[Cloud Function Deployment] Deploying Function"
+	@echo "[PROD][Cloud Function Deployment] Deploying Function"
 	@gcloud functions deploy deviceControlApi --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars PROJECT_ID=$(PROJECT_ID) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
 
-deploy-test dt:
-	@echo "[TESTING] [Cloud Function Deployment] Deploying Function"
-	@gcloud functions deploy TestdeviceControlApi --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars PROJECT_ID=$(PROJECT_ID) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
+deploy-dev dev:
+	@echo "[DEV][Cloud Function Deployment] Deploying Function"
+	@gcloud functions deploy dev-deviceControlApi --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars PROJECT_ID=$(PROJECT_ID) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
 
 run r:
 	@echo "[Running] Running service"
