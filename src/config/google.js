@@ -13,7 +13,7 @@ const config = {
   },
   iotCore: {
     cloudRegion: process.env.cloudRegion,
-    projectId: process.env.PROJECT_ID,
+    PROJECT_ID: process.env.PROJECT_ID,
     registryId: process.env.registryId,
     version: 0,
     parentName: '',
@@ -21,7 +21,7 @@ const config = {
   },
 };
 
-config.iotCore.parentName = `projects/${config.iotCore.projectId}/locations/${config.iotCore.cloudRegion}`;
+config.iotCore.parentName = `projects/${config.iotCore.PROJECT_ID}/locations/${config.iotCore.cloudRegion}`;
 config.iotCore.registryName = `${config.iotCore.parentName}/registries/${config.iotCore.registryId}`;
 
 module.exports = config;

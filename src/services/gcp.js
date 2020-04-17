@@ -1,10 +1,12 @@
+const _ = require('lodash');
+
 const iot = require('@google-cloud/iot');
 const client = new iot.DeviceManagerClient();
 const {google} = require('googleapis');
 const googleConf = require('../config/google.js');
 
 if (
-  googleConf.iotCore.projectId === undefined ||
+  googleConf.iotCore.PROJECT_ID === undefined ||
   googleConf.iotCore.cloudRegion === undefined ||
   googleConf.iotCore.registryId === undefined
 ) {
@@ -31,12 +33,12 @@ const getClient = async () => {
 };
 
 exports.getRegistries = async () => {
-  const parent = client.locationPath(googleConf.iotCore.projectId, googleConf.iotCore.cloudRegion);
+  const parent = client.locationPath(googleConf.iotCore.PROJECT_ID, googleConf.iotCore.cloudRegion);
   try {
     const [registries] = await client.listDeviceRegistries({
       parent,
     });
-    return registries.map(registry => {
+    return registries.map((registry) => {
       return registry.id;
     });
   } catch (err) {
@@ -45,7 +47,7 @@ exports.getRegistries = async () => {
 };
 
 exports.getDevices = async () => {
-  const parentName = `projects/${googleConf.iotCore.projectId}/locations/${googleConf.iotCore.cloudRegion}`;
+  const parentName = `projects/${googleConf.iotCore.PROJECT_ID}/locations/${googleConf.iotCore.cloudRegion}`;
   const registryName = `${parentName}/registries/${googleConf.iotCore.registryId}`;
 
   const request = {
@@ -62,8 +64,8 @@ exports.getDevices = async () => {
   }
 };
 
-exports.getDeviceState = async deviceId => {
-  const parentName = `projects/${googleConf.iotCore.projectId}/locations/${googleConf.iotCore.cloudRegion}`;
+exports.getDeviceState = async (deviceId) => {
+  const parentName = `projects/${googleConf.iotCore.PROJECT_ID}/locations/${googleConf.iotCore.cloudRegion}`;
   const registryName = `${parentName}/registries/${googleConf.iotCore.registryId}`;
   const request = {
     name: `${registryName}/devices/${deviceId}`,
@@ -76,16 +78,14 @@ exports.getDeviceState = async deviceId => {
       request
     );
     if (data.deviceStates) {
-      return data.deviceStates.map(deviceState => {
+      return data.deviceStates.map((deviceState) => {
         const base64_text = deviceState.binaryData.toString('utf8');
         const buff = Buffer.from(base64_text, 'base64');
         const data = JSON.parse(buff.toString('utf-8'));
         // Show the date and time corresponding to the timezone
         const datetime = new Date(deviceState.updateTime);
-        return {
-          data,
-          datetime,
-        };
+        data.datetime = datetime;
+        return data;
       });
     } else {
       return {};
@@ -95,9 +95,9 @@ exports.getDeviceState = async deviceId => {
   }
 };
 
-exports.getDeviceConfig = async deviceId => {
+exports.getDeviceConfig = async (deviceId) => {
   const devicePath = client.devicePath(
-    googleConf.iotCore.projectId,
+    googleConf.iotCore.PROJECT_ID,
     googleConf.iotCore.cloudRegion,
     googleConf.iotCore.registryId,
     deviceId
@@ -108,14 +108,20 @@ exports.getDeviceConfig = async deviceId => {
     const configs = responses[0].deviceConfigs;
 
     if (configs.length > 0) {
-      return configs.map(config => {
+      return configs.map((config) => {
         const bufferedData = config.binaryData.toString('utf8');
         if (bufferedData === '') return {err: 'no config'};
         else {
-          const data = JSON.parse(config.binaryData.toString('utf8'));
+          let string = config.binaryData.toString('utf8');
+          if (string[0] != '{') {
+            string = `{${string}}`;
+          }
+          const data = JSON.parse(string);
           // Show the date and time corresponding to the timezone
           const datetime = new Date(config.cloudUpdateTime.seconds * 1000);
-          return {data, datetime};
+
+          data.datetime = datetime;
+          return data;
         }
       });
     }
@@ -154,8 +160,24 @@ exports.getDeviceConfig = async deviceId => {
  * @returns {Promise<number>} HTTP status code - 200, 429.
  */
 exports.updateDeviceConfig = async (deviceId, config) => {
+  const _config = _.pick(config, ['duty', 'state']);
+
+  const _configTimer = _.pick(config, ['timerOn', 'timerOff', 'timerState']);
+
+  // Generate the board format for the device.
+  const board = {
+    board: {
+      led1: _config,
+      led2: _config,
+      timer: _configTimer,
+    },
+  };
+  // Convert config object to JSON.
+  const data = JSON.stringify(board);
+
   // Convert data to base64
-  const binaryData = Buffer.from(config).toString('base64');
+  const binaryData = Buffer.from(data).toString('base64');
+
   // Create request object
   const request = {
     name: `${googleConf.iotCore.registryName}/devices/${deviceId}`,

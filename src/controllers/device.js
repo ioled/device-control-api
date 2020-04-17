@@ -1,49 +1,6 @@
 const googleService = require('../services/gcp');
-const mongoDBService = require('../services/mongodb');
 
-/**
- * List all the devices
- * @description List the devices registered in IoT Core registry: ioled-devices.
- * @returns {object} HTTP status code - 200, 500.
- * @example Response example:
- * {
- *  "devices": [
- *   {
- *    "device": "esp32_...",
- *    "user":
- *      {"fullName": "...", "email": "...", "profilePic": "..."}
- *   },
- *   ...
- *  ]
- * }
- */
-exports.getDevices = async (req, res) => {
-  console.log('[Device Control API][getDevices][Request]');
-  try {
-    // Get the devices from the registry
-    const d = await googleService.getDevices();
-
-    // Just Get the device id
-    // For every device, get the corresponding user
-    const devices = [];
-    for (let i = 0; i < d.length; i++) {
-      const device = d[i];
-      const user = await mongoDBService.deviceUser(device.id);
-
-      devices.push({
-        device: device.id,
-        user,
-      });
-    }
-
-    console.log('[Device Control API][getDevices][Response] ', devices);
-    res.status(200).json({devices});
-  } catch (error) {
-    console.log('[Device Control API][getDevices][Error] ', error);
-    // Send the error
-    res.status(500).json({error});
-  }
-};
+const {updateDevice} = require('../services/firestore');
 
 /**
  * Get the state of a iot core device.
@@ -73,7 +30,7 @@ exports.getDeviceState = async (req, res) => {
     // Get device state
     const deviceState = await googleService.getDeviceState(id);
     console.log('[Device Control API][getDeviceState (' + id + ')][Response] ', deviceState);
-    res.status(200).send({deviceState});
+    res.status(200).json({data: deviceState});
   } catch (error) {
     console.log('[Device Control API][getDeviceState (' + id + ')][Error] ', error);
     // Send the error
@@ -118,7 +75,7 @@ exports.getDeviceConfig = async (req, res) => {
     // Get the device config
     const deviceConfig = await googleService.getDeviceConfig(id);
     console.log('[Device Control API][getDeviceConfig (' + id + ')][Response] ', deviceConfig);
-    res.status(200).json({deviceConfig});
+    res.status(200).json({data: deviceConfig});
   } catch (error) {
     console.log('[Device Control API][getDeviceConfig (' + id + ')][Error] ', error);
     // Send the error
@@ -157,44 +114,23 @@ exports.updateDeviceConfig = async (req, res) => {
   }
   // Send the configuration to google IoT core.
   try {
-    // Make sure to send the configuration in string mode
-    const status = await googleService.updateDeviceConfig(id, JSON.stringify(config));
+    const status = await googleService.updateDeviceConfig(id, config);
     // If configuration is ok, then update the config in the database.
     // Do not confuse the updateDeviceConfig status with the status of this controller
     if (status === 200) {
-      console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', status);
-      return res.status(status).send({status});
+      try {
+        await updateDevice(id, config);
+        console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', {
+          message: 'Config updated',
+        });
+        return res.status(status).sendStatus(status);
+      } catch (error) {
+        console.log('[iOLED-API][updateDeviceConfig][Error] ', {error: error.message});
+      }
     }
   } catch (error) {
     console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
     // Send the error
-    return res.status(500).json({error});
-  }
-};
-
-/**
- * Get the user related to the device
- * @description Controller that returns a JSON object with the user information of the device user
- * @param {String} id - ID of the device listed in IoT Core
- * @returns {object} HTTP status code - 200, 500.
- * @example Response example:
- * {
- *  "user": {
- *    "fullName": "John Doe",
- *    "email": "johndoe@gmail.com",
- *    "profilePic": "..."
- *  }
- * }
- */
-exports.getUserByDevice = async (req, res) => {
-  const {id} = req.params;
-  console.log('[Device Control API][getUserByDevice (' + id + ')][Request] ', req.params);
-  try {
-    const user = await mongoDBService.deviceUser(id);
-    console.log('[Device Control API][getUserByDevice (' + id + ')][Response] ', user);
-    res.status(200).json({user});
-  } catch (error) {
-    console.log('[Device Control API][getUserByDevice (' + id + ')][Error] ', error);
     return res.status(500).json({error});
   }
 };
@@ -215,7 +151,11 @@ exports.getUserByDevice = async (req, res) => {
  */
 exports.getDeviceLastState = async (req, res) => {
   const {id} = req.params;
-  console.log('[Device Control API][getDeviceLastState (' + id + ')][Request]', req.params);
+  console.log(
+    '[Device Control API][getDeviceLastState (' + id + ')][Request]',
+    req.params,
+    req.body
+  );
   // Using the same logic in the "getDeviceState" function
   try {
     const deviceState = await googleService.getDeviceState(id);
@@ -224,7 +164,7 @@ exports.getDeviceLastState = async (req, res) => {
       '[Device Control API][getDeviceLastState (' + id + ')][Response]',
       deviceStateResponse
     );
-    res.status(200).send(deviceStateResponse);
+    res.status(200).json({data: deviceStateResponse});
   } catch (error) {
     console.log('[Device Control API][getDeviceLastState (' + id + ')][Error]', error);
     // Send the error
@@ -273,7 +213,7 @@ exports.getDeviceLastConfig = async (req, res) => {
       '[Device Control API][getDeviceLastConfig (' + id + ')][Response] ',
       deviceConfig[0]
     );
-    res.status(200).json(deviceConfig[0]);
+    res.status(200).json({data: deviceConfig[0]});
   } catch (error) {
     console.log('[Device Control API][getDeviceLastConfig (' + id + ')][Error] ', error);
     // Send the error

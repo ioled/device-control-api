@@ -1,5 +1,4 @@
 VERSION := $$(cat package.json | grep version | sed 's/"/ /g' | awk {'print $$3'})
-MONGO_URI:= $$(cat env.json | grep MONGO_URI | sed 's/"/ /g' | awk {'print $$3'})
 cloudRegion := $$(cat env.json | grep cloudRegion | sed 's/"/ /g' | awk {'print $$3'})
 PROJECT_ID := $$(cat env.json | grep PROJECT_ID | sed 's/"/ /g' | awk {'print $$3'})
 registryId := $$(cat env.json | grep registryId | sed 's/"/ /g' | awk {'print $$3'})
@@ -16,7 +15,7 @@ init i:
 
 docker:
 	@echo [Docker] Building docker image
-	@docker build -t $(REGISTRY)/$(projectId)/$(SVC):$(VERSION) .
+	@docker build -t $(REGISTRY)/$(PROJECT_ID)/$(SVC):$(VERSION) .
 
 docker-compose co:
 	@echo [Docker][Compose] Running with docker compose
@@ -26,14 +25,18 @@ docker-compose co:
 docker-registry reg:
 	@echo [Docker][Registry] Deploying to registry
 	@make docker
-	@docker push $(REGISTRY)/$(projectId)/$(SVC):$(VERSION)
+	@docker push $(REGISTRY)/$(PROJECT_ID)/$(SVC):$(VERSION)
 
 deploy d:
-	@echo "[Cloud Function Deployment] Deploying Function"
-	@gcloud functions deploy deviceControlApi --set-env-vars MONGO_URI=$(MONGO_URI) --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars projectId=$(projectId) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
+	@echo "[PROD][Cloud Function Deployment] Deploying Function"
+	@gcloud functions deploy deviceControlApi --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars PROJECT_ID=$(PROJECT_ID) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
+
+deploy-dev dev:
+	@echo "[DEV][Cloud Function Deployment] Deploying Function"
+	@gcloud functions deploy dev-deviceControlApi --set-env-vars cloudRegion=$(cloudRegion) --set-env-vars PROJECT_ID=$(PROJECT_ID) --set-env-vars registryId=$(registryId) --runtime nodejs8 --trigger-http --entry-point deviceControlApi
 
 run r:
 	@echo "[Running] Running service"
-	@PORT=$(PORT) MONGO_URI=$(MONGO_URI) cloudRegion=$(cloudRegion) PROJECT_ID="$(PROJECT_ID)" registryId=$(registryId) node src/start.js
+	@PORT=$(PORT) GOOGLE_APPLICATION_CREDENTIALS="./google-cloud-service-account.json" cloudRegion=$(cloudRegion) PROJECT_ID=$(PROJECT_ID) registryId=$(registryId) node src/start.js
 
 .PHONY: version v init i deploy d run r
