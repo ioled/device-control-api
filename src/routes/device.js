@@ -8,6 +8,8 @@ const {
   updateDeviceConfig,
   getDeviceLastConfig,
   getDeviceLastState,
+  updateGroupConfig,
+  getGroupLastState,
 } = require('../controllers/device');
 
 // Router middleware to handle devices routes.
@@ -21,5 +23,8 @@ router.route('/device/:id/state-history').get(getDeviceState);
 
 router.route('/device/:id/config-history').get(getDeviceConfig);
 
+router.route('/group/config').put(updateGroupConfig);
+
+router.route('/group/state').put(getGroupLastState);
 // Export router to use it in the main router.
 module.exports = router;

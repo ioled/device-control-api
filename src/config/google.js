@@ -12,9 +12,9 @@ const config = {
     discovery: 'https://cloudiot.googleapis.com/$discovery/rest',
   },
   iotCore: {
-    cloudRegion: process.env.cloudRegion,
-    PROJECT_ID: process.env.PROJECT_ID,
-    registryId: process.env.registryId,
+    cloudRegion: 'us-central1',
+    PROJECT_ID: 'ioled-antu',
+    registryId: 'ioled-devices',
     version: 0,
     parentName: '',
     registryName: '',

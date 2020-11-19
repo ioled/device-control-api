@@ -12,7 +12,7 @@ const usersRef = db.collection('users');
 exports.getDevicesWithUserInfo = async () => {
   try {
     const snapshot = await devicesRef.get();
-    const data = snapshot.docs.map(doc => {
+    const data = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {deviceID: data.deviceID, user: data.user};
     });
@@ -38,7 +38,7 @@ exports.getDevicesWithUserInfo = async () => {
   }
 };
 
-exports.getUserByDevice = async id => {
+exports.getUserByDevice = async (id) => {
   try {
     const snapshot = await devicesRef.doc(id).get();
     const device = snapshot.data();
@@ -63,20 +63,20 @@ exports.getUserByDevice = async id => {
  * @param  {object} res Response
  * @param  {Function} next Callback function
  */
-exports.updateDevice = async (id, config) => {
+exports.updateDeviceDB = async (id, config) => {
   try {
     await devicesRef
       .where('deviceID', '==', id)
       .get()
-      .then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
           devicesRef.doc(doc.id).update(config);
         });
       });
-    console.log('[Firestore Service] [updateDevice] Update config:', config);
+    console.log('[Firestore Service] [updateDeviceDB] Update config:', config);
   } catch (error) {
     console.log(
-      '[Firestore Service] [updateDevice] [Error] There was an error update config',
+      '[Firestore Service] [updateDeviceDB] [Error] There was an error update config',
       error
     );
     throw new Error(error);

@@ -1,9 +1,9 @@
 const googleService = require('../services/gcp');
 
-const {updateDevice} = require('../services/firestore');
+const {updateDeviceDB} = require('../services/firestore');
 
 /**
- * Get the state of a iot core device.
+ * Get the state of a IoT Core device.
  * @description List the last 10 states of device
  * @param {String} deviceId ID of the device listed in IoT Core
  * @returns {object} HTTP status code - 200, 500.
@@ -25,21 +25,21 @@ const {updateDevice} = require('../services/firestore');
  */
 exports.getDeviceState = async (req, res) => {
   const {id} = req.params;
-  console.log('[Device Control API][getDeviceState (' + id + ')][Request]', req.params);
+  console.log(`[Device Control API][getDeviceState (${id})][Request] `, req.params);
   try {
     // Get device state
     const deviceState = await googleService.getDeviceState(id);
-    console.log('[Device Control API][getDeviceState (' + id + ')][Response] ', deviceState);
+    console.log(`[Device Control API][getDeviceState (${id})][Response]  `, deviceState);
     res.status(200).json({data: deviceState});
   } catch (error) {
-    console.log('[Device Control API][getDeviceState (' + id + ')][Error] ', error);
+    console.log(`[Device Control API][getDeviceState (${id})][Error] `, error);
     // Send the error
     res.status(500).send({error});
   }
 };
 
 /**
- * Get the config of a iot core device.
+ * Get the config of a IoT Core device.
  * @description List the last 10 configs of device
  * @param {String} id - ID of the device listed in IoT Core
  * @returns {object} HTTP status code - 200, 500.
@@ -70,16 +70,16 @@ exports.getDeviceState = async (req, res) => {
  */
 exports.getDeviceConfig = async (req, res) => {
   const {id} = req.params;
-  console.log('[Device Control API][getDeviceConfig (' + id + ')][Request] ', req.params);
+  console.log(`[Device Control API][getDeviceConfig (${id})][Request] `, req.params);
   try {
     // Get the device config
     const deviceConfig = await googleService.getDeviceConfig(id);
-    console.log('[Device Control API][getDeviceConfig (' + id + ')][Response] ', deviceConfig);
+    console.log(`[Device Control API][getDeviceConfig (${id})][Response] `, deviceConfig);
     res.status(200).json({data: deviceConfig});
-  } catch (error) {
-    console.log('[Device Control API][getDeviceConfig (' + id + ')][Error] ', error);
+  } catch (err) {
+    console.log(`[Device Control API][getDeviceConfig (${id})][Error] `, err);
     // Send the error
-    return res.status(500).json({error});
+    return res.status(500).json({err});
   }
 };
 
@@ -97,6 +97,10 @@ exports.getDeviceConfig = async (req, res) => {
  *			"timerOn": "00:00",
  *			"timeOff": "12:00",
  *			"timerState": true
+ *      "timerDuty": 0.5,
+ * 			"rampState": true,
+ * 			"onTime": 1,
+ * 			"offTime": 0
  *		}
  *	}
  * }
@@ -104,34 +108,36 @@ exports.getDeviceConfig = async (req, res) => {
 exports.updateDeviceConfig = async (req, res) => {
   // Get the deviceId and config from the request body.
   const {id} = req.params;
-  console.log('[Device Control API][updateDeviceConfig (' + id + ')][Request] ', req.params);
+  console.log(`[Device Control API][updateDeviceConfig (${id})][Request] `, req.params);
   const {device} = req.body;
   const {config} = device;
 
   if (config === undefined) {
-    console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error]: Config Undefined');
-    return res.status(500);
+    console.log(`[Device Control API][updateDeviceConfig (${id})][Error]: Config undefined`);
+    return res.sendStatus(500);
   }
   // Send the configuration to google IoT core.
   try {
     const status = await googleService.updateDeviceConfig(id, config);
     // If configuration is ok, then update the config in the database.
     // Do not confuse the updateDeviceConfig status with the status of this controller
-    if (status === 200) {
-      try {
-        await updateDevice(id, config);
-        console.log('[Device Control API][updateDeviceConfig (' + id + ')][Response] ', {
-          message: 'Config updated',
-        });
-        return res.status(status).sendStatus(status);
-      } catch (error) {
-        console.log('[iOLED-API][updateDeviceConfig][Error] ', {error: error.message});
-      }
+    if (status !== 200) {
+      return res.status(500).send('update IoT Core error');
     }
-  } catch (error) {
-    console.log('[Device Control API][updateDeviceConfig (' + id + ')][Error] ', error);
+
+    try {
+      await updateDeviceDB(id, config);
+      console.log(`[Device Control API][updateDeviceConfig (${id})][Response] `, {
+        message: 'Config updated',
+      });
+      return res.sendStatus(200);
+    } catch (err) {
+      console.log(`[Device Control API][updateDeviceConfig][Error] `, {error: err.message});
+    }
+  } catch (err) {
+    console.log('[Device Control API][updateDeviceConfig (${id})][Error] ', err);
     // Send the error
-    return res.status(500).json({error});
+    return res.status(500).send({err});
   }
 };
 
@@ -151,24 +157,17 @@ exports.updateDeviceConfig = async (req, res) => {
  */
 exports.getDeviceLastState = async (req, res) => {
   const {id} = req.params;
-  console.log(
-    '[Device Control API][getDeviceLastState (' + id + ')][Request]',
-    req.params,
-    req.body
-  );
-  // Using the same logic in the "getDeviceState" function
+  console.log(`[Device Control API][getDeviceLastState (${id})][Request]`, req.params, req.body);
+
   try {
     const deviceState = await googleService.getDeviceState(id);
     const deviceStateResponse = Object.keys(deviceState).length === 0 ? {} : deviceState[0];
-    console.log(
-      '[Device Control API][getDeviceLastState (' + id + ')][Response]',
-      deviceStateResponse
-    );
+    console.log(`[Device Control API][getDeviceLastState (${id})][Response]`, deviceStateResponse);
     res.status(200).json({data: deviceStateResponse});
-  } catch (error) {
-    console.log('[Device Control API][getDeviceLastState (' + id + ')][Error]', error);
+  } catch (err) {
+    console.log(`[Device Control API][getDeviceLastState (${id})][Error]`, err);
     // Send the error
-    res.status(500).send({error});
+    res.status(500).send({err});
   }
 };
 
@@ -201,22 +200,168 @@ exports.getDeviceLastState = async (req, res) => {
  */
 exports.getDeviceLastConfig = async (req, res) => {
   const {id} = req.params;
-  console.log(
-    '[Device Control API][getDeviceLastConfig (' + id + ')][Request] ',
-    req.params,
-    req.body
-  );
+  console.log(`[Device Control API][getDeviceLastConfig (${id})][Request] `, req.params, req.body);
   // Using the same logic in the "getDeviceConfig" function
   try {
     const deviceConfig = await googleService.getDeviceConfig(id);
-    console.log(
-      '[Device Control API][getDeviceLastConfig (' + id + ')][Response] ',
-      deviceConfig[0]
-    );
+    console.log(`[Device Control API][getDeviceLastConfig (${id})][Response] `, deviceConfig[0]);
     res.status(200).json({data: deviceConfig[0]});
-  } catch (error) {
-    console.log('[Device Control API][getDeviceLastConfig (' + id + ')][Error] ', error);
+  } catch (err) {
+    console.log(`[Device Control API][getDeviceLastConfig (${id})][Error] `, err);
     // Send the error
-    return res.status(500).json({error});
+    return res.status(500).json({err});
   }
+};
+
+/**
+ * @CristianValdivia
+ * Update the configuration of all registered device in group.
+ * @description Send the configuration to Google IoT Core.
+ * @param {Array} list - Array of deviceId
+ * @example Request example:
+ * {
+ *	"group": {
+ *		"list": [
+ *			"esp8266_D5AFEF",
+ *      "esp8266_D5AFEF
+ * 		],
+ *		"config": {
+ *			"duty": 0.3,
+ *			"state": true,
+ *			"timerOn": "00:00",
+ *			"timeOff": "12:00",
+ *			"timerState": true
+ *      "timerDuty": 0.5,
+ * 			"rampState": true,
+ * 			"onTime": 1,
+ * 			"offTime": 0
+ *		}
+ *	}
+ * }
+ */
+exports.updateGroupConfig = async (req, res) => {
+  console.log('[Device Control API][updateGroupConfig ][Request] ', req.body);
+
+  // Get the list of deviceId and config from the request body.
+  const {group} = req.body;
+  const {config} = group;
+  const {list} = group;
+
+  if (config === undefined) {
+    console.log('[Device Control API][updateDeviceConfig][Error]: Config Undefined');
+    return res.status(500);
+  }
+
+  const ids = list.reduce((arr, id) => {
+    arr.push(promiseUpdateDevice(id, config));
+    return arr;
+  }, []);
+
+  try {
+    await Promise.all(ids);
+  } catch (err) {
+    console.log('[Device Control API][updateGroupConfig ][error] ', err);
+    return res.status(500);
+  }
+
+  return res.json({message: 'Config group updated'});
+};
+
+const promiseUpdateDevice = (deviceId, config) => {
+  return new Promise((resolve, reject) => {
+    googleService
+      .updateDeviceConfig(deviceId, config)
+      .then((status) => {
+        if (status !== 200) {
+          throw new Error(`invalid status=${status}`);
+        }
+
+        return updateDeviceDB(deviceId, config);
+      })
+      .then(() => {
+        console.log(`[Device Control API][updateDeviceConfig (${deviceId})][Response] `, {
+          message: 'Config updated',
+        });
+        resolve();
+      })
+      .catch((err) => {
+        console.log(`[Device Control API][updateDeviceConfig (${deviceId})][Error] `, err);
+        reject(err);
+      });
+  });
+};
+
+/**
+ * @CristianValdivia
+ * Get the last state of all registered device in group.
+ * @description Get the last state from Google IoT Core.
+ * @param {String} id - ID of group
+ * @example Request example:
+ * {
+ *	"group": {
+ *		"list": [
+ *			"esp8266_D5AFEF",
+ *      "esp8266_D5AFEF
+ * 		],
+ *		"config": {
+ *			"duty": 0.3,
+ *			"state": true,
+ *			"timerOn": "00:00",
+ *			"timeOff": "12:00",
+ *			"timerState": true
+ *      "timerDuty": 0.5,
+ * 			"rampState": true,
+ * 			"onTime": 1,
+ * 			"offTime": 0
+ *		}
+ *	}
+ * }
+ */
+exports.getGroupLastState = async (req, res) => {
+  console.log('[Device Control API][getGroupLastState ][Request] ', req.body);
+
+  // Get the list of deviceID from body
+  const {group} = req.body;
+  const {list} = group;
+
+  const ids = list.reduce((arr, id) => {
+    arr.push(promiseGetState(id));
+    return arr;
+  }, []);
+
+  let arrayState = [];
+  try {
+    arrayState = await Promise.all(ids);
+  } catch (err) {
+    console.log('[Device Control API][getGroupLastState ][error] ', err);
+    return res.status(500);
+  }
+
+  const averageHum =
+    arrayState.reduce((sum, id) => {
+      return sum + parseFloat(id.hum);
+    }, 0) / arrayState.length;
+
+  const averageTemp =
+    arrayState.reduce((sum, id) => {
+      return sum + parseFloat(id.temp);
+    }, 0) / arrayState.length;
+
+  console.log('[Device Control API][getGroupLastState ][Response] ', averageHum, averageTemp);
+  res.status(200).json({data: {averageHum, averageTemp}});
+};
+
+const promiseGetState = (deviceId) => {
+  return new Promise((resolve, reject) => {
+    googleService
+      .getDeviceState(deviceId)
+      .then((deviceState) => {
+        const deviceStateResponse = Object.keys(deviceState).length === 0 ? {} : deviceState[0];
+        resolve(deviceStateResponse);
+      })
+      .catch((err) => {
+        console.log(`[Device Control API][promiseGetState (${deviceId})][Error] `, err);
+        reject(err);
+      });
+  });
 };

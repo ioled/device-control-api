@@ -3,7 +3,7 @@ const _ = require('lodash');
 const iot = require('@google-cloud/iot');
 const client = new iot.DeviceManagerClient();
 const {google} = require('googleapis');
-const googleConf = require('../config/google.js');
+const googleConf = require('../config/google');
 
 if (
   googleConf.iotCore.PROJECT_ID === undefined ||
@@ -162,7 +162,9 @@ exports.getDeviceConfig = async (deviceId) => {
 exports.updateDeviceConfig = async (deviceId, config) => {
   const _config = _.pick(config, ['duty', 'state']);
 
-  const _configTimer = _.pick(config, ['timerOn', 'timerOff', 'timerState']);
+  const _configTimer = _.pick(config, ['timerOn', 'timerOff', 'timerState', 'timerDuty']);
+
+  const _configRamp = _.pick(config, ['onTime', 'offTime', 'rampState']);
 
   // Generate the board format for the device.
   const board = {
@@ -170,6 +172,7 @@ exports.updateDeviceConfig = async (deviceId, config) => {
       led1: _config,
       led2: _config,
       timer: _configTimer,
+      ramp: _configRamp,
     },
   };
   // Convert config object to JSON.
